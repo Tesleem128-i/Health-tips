@@ -1,0 +1,101 @@
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #f0f9ff;
+    margin: 0;
+    padding: 0;
+}
+
+.app-title {
+    text-align: center;
+    padding: 20px;
+    font-size: 28px;
+    color: #0077cc;
+}
+
+#tips-container {
+    max-width: 800px;
+    margin: 30px auto;
+    padding: 0 15px;
+}
+
+.tip-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tip-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+}
+
+.tip-content {
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.tip-image {
+    width: 100%;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+
+.tip-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.tip-actions button {
+    flex: 1;
+    background: #4da6ff;
+    border: none;
+    padding: 10px 12px;
+    border-radius: 8px;
+    color: white;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.tip-actions button:hover {
+    background: #3385ff;
+}
+
+.like-btn {
+    background: #28a745;
+}
+
+.like-btn:hover {
+    background: #1f8a39;
+}
+
+.comment-btn {
+    background: #ffc107;
+    color: #333;
+}
+
+.comment-btn:hover {
+    background: #e0a800;
+    color: white;
+}
+
+.share-btn {
+    background: #17a2b8;
+}
+
+.share-btn:hover {
+    background: #117a8b;
+}
+
+.download-btn {
+    background: #ff4d4d;
+}
+
+.download-btn:hover {
+    background: #cc0000;
+}

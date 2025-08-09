@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Health Tips</title>
+    <link rel="stylesheet" href="/static/index.css">
+</head>
+<body>
+    <h1 class="app-title">💡 Health Tips</h1>
+
+    <div id="tips-container"></div>
+
+    <script>
+        // Load all tips from Flask API
+        async function loadTips() {
+            let res = await fetch('/tips');
+            let tips = await res.json();
+            let container = document.getElementById('tips-container');
+            container.innerHTML = '';
+            tips.forEach(t => {
+                container.innerHTML += `
+                    <div class="tip-card">
+                        ${t.image_url ? `<img src="${t.image_url}" class="tip-image">` : ''}
+                        <p class="tip-content">${t.content}</p>
+                        <div class="tip-actions">
+                            <button class="like-btn" onclick="likeTip(${t.id})">Like (${t.likes})</button>
+                            <button class="comment-btn">Comment</button>
+                            <button class="share-btn" onclick="shareTip('${t.content}')">Share</button>
+                            <button class="download-btn" onclick="downloadTip('${t.content}')">Download</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Like a tip
+        async function likeTip(id) {
+            let res = await fetch('/like/' + id, { method: 'POST' });
+            let data = await res.json();
+            loadTips(); // reload tips to update like count
+        }
+
+        // Share a tip
+        function shareTip(content) {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Health Tip',
+                    text: content
+                });
+            } else {
+                alert("Sharing not supported on this browser.");
+            }
+        }
+
+        // Download a tip as a text file
+        function downloadTip(content) {
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'health_tip.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        loadTips();
+    </script>
+</body>
+</html>
