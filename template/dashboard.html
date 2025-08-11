@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Dashboard - ABDULmaliki Health Tips</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='image/healthtips.png') }}">
+</head>
+<body>
+    <header class="dashboard-header">
+        <div class="logo-section">
+            <img src="{{ url_for('static', filename='image/healthtips.png') }}" alt="Logo" class="site-logo">
+            <h1>ABDULmaliki Health Tips</h1>
+        </div>
+        <nav class="dashboard-nav">
+            <button class="nav-btn" onclick="showSection('home-section')"><i class="fas fa-home"></i> Home</button>
+            <button class="nav-btn" onclick="showSection('profile-section')"><i class="fas fa-user"></i> Profile</button>
+            <a href="{{ url_for('logout') }}" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </nav>
+    </header>
+
+    <main>
+        <!-- HOME SECTION -->
+        <section id="home-section" class="dashboard-section">
+            <h2>Welcome, {{ session['username'] }}</h2>
+            <div id="tips-container"></div>
+        </section>
+
+        <!-- PROFILE SECTION -->
+        <section id="profile-section" class="dashboard-section" style="display:none;">
+            <h2>Profile Information</h2>
+            <p><strong>User ID:</strong> {{ session['user_id'] }}</p>
+            <p><strong>Username:</strong> {{ session['username'] }}</p>
+            <p><strong>Member Since:</strong> {{ join_date }}</p> <!-- Pass this from Flask -->
+        </section>
+    </main>
+
+    <script>
+        // Switch between Home and Profile without leaving dashboard
+        function showSection(sectionId) {
+            document.querySelectorAll('.dashboard-section').forEach(sec => sec.style.display = 'none');
+            document.getElementById(sectionId).style.display = 'block';
+        }
+
+        // Load health tips
+        let allTips = [];
+
+        async function loadTips() {
+            let res = await fetch('/tips');
+            allTips = await res.json();
+            renderTips(allTips);
+        }
+
+        function renderTips(tips) {
+            let container = document.getElementById('tips-container');
+            container.innerHTML = '';
+            tips.forEach(t => {
+                container.innerHTML += `
+                    <div class="tip-card">
+                        ${t.image_url ? `<img src="${t.image_url}" class="tip-image">` : ''}
+                        ${t.video_url ? `<video class="tip-video" controls><source src="${t.video_url}" type="video/mp4"></video>` : ''}
+                        <p class="tip-content">${t.content}</p>
+                        <div class="tip-actions">
+                            <button onclick="likeTip(${t.id})"><i class="fas fa-thumbs-up"></i> ${t.likes}</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        async function likeTip(id) {
+            await fetch('/like/' + id, { method: 'POST' });
+            loadTips();
+        }
+
+        loadTips();
+    </script>
+</body>
+</html>

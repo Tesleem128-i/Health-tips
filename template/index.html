@@ -3,66 +3,337 @@
 <head>
     <meta charset="UTF-8">
     <title>Health Tips</title>
-    <link rel="stylesheet" href="/static/index.css">
-</head>
-<body>
-    <h1 class="app-title">💡 Health Tips</h1>
+    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+    <!-- Updated Font Awesome Link -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='image/healthtips.png') }}">
+    <style>
+        /* Fade-in/out animations */
+        .tip-card {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
 
+        .tip-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+    <header class="main-header">
+        <!-- Logo and Title -->
+        <div class="logo-section">
+            <img src="{{ url_for('static', filename='image/healthtips.png') }}" alt="ABDULmaliki Health Tips Logo" class="site-logo">
+            <h1 class="app-title">ABDULmaliki Health Tips</h1>
+        </div>
+        <div class="header-icons">
+            <!-- Theme Toggle -->
+            <button id="theme-toggle"><i class="fas fa-adjust"></i></button>
+
+            <!-- If user is not logged in -->
+            {% if not session.get('user_id') %}
+                <a href="{{ url_for('signup') }}" class="btn-signup">
+                    <i class="fas fa-user-plus"></i> Sign Up
+                </a>
+                <a href="{{ url_for('login') }}" class="btn-login">
+                    <i class="fas fa-sign-in-alt"></i> Log In
+                </a>
+            {% else %}
+                <a href="{{ url_for('profile', user_id=session['user_id']) }}" class="btn-profile">
+                    <i class="fas fa-user"></i> {{ session['user_id'] }}
+                </a>
+                <a href="{{ url_for('logout') }}" class="btn-logout">
+                    <i class="fas fa-sign-out-alt"></i> Log Out
+                </a>
+            {% endif %}
+        </div>
+        <!-- Search Bar -->
+        <div class="search-section">
+            <input type="text" id="search-bar" placeholder="Search health tips..." oninput="filterTips()">
+            <button onclick="filterTips()" class="search-btn"><i class="fas fa-search"></i></button>
+        </div>
+    </header>
+
+    <!-- Admin Upload Form -->
+    <div class="upload-section">
+        <h2>📤 Add New Health Tip</h2>
+        <form id="upload-form" enctype="multipart/form-data">
+            <textarea name="content" id="tip-content" placeholder="Enter your health tip..." required></textarea>
+            <input type="file" name="image" accept="image/*">
+            <input type="file" name="video" accept="video/*">
+            <button type="submit"><i class="fas fa-upload"></i> Upload Tip</button>
+        </form>
+    </div>
+
+    <!-- Tips Feed -->
     <div id="tips-container"></div>
 
+    <!-- FAQ Section -->
+    <section class="faq-section">
+        <h2 class="faq-title">❓ Frequently Asked Questions</h2>
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFAQ(this)">
+                <span>What is ABDULmaliki Health Tips about?</span>
+                <i class="fas fa-plus"></i>
+            </div>
+            <div class="faq-answer">
+                Our site provides reliable health tips, articles, and videos to help people live healthier lives. You can search, like, share, and download content easily.
+            </div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFAQ(this)">
+                <span>How can I upload a health tip?</span>
+                <i class="fas fa-plus"></i>
+            </div>
+            <div class="faq-answer">
+                If you are an admin, you can upload tips with images or videos using the upload form. Simply type your tip, choose media files, and click the upload button.
+            </div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFAQ(this)">
+                <span>Can I like, comment, and share tips?</span>
+                <i class="fas fa-plus"></i>
+            </div>
+            <div class="faq-answer">
+                Yes! You can like tips, share them directly to your device or apps, and soon you’ll be able to leave comments to join the discussion.
+            </div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFAQ(this)">
+                <span>Do I need an account to use the site?</span>
+                <i class="fas fa-plus"></i>
+            </div>
+            <div class="faq-answer">
+                Currently, you don’t need an account to view and interact with tips, but account features may be added in the future for a more personalized experience.
+            </div>
+        </div>
+    </section>
+
     <script>
-        // Load all tips from Flask API
+        let allTips = [];
+        const likedTips = new Set();
+
         async function loadTips() {
             let res = await fetch('/tips');
-            let tips = await res.json();
+            allTips = await res.json();
+            allTips = Array.from(new Set(allTips.map(tip => tip.id)))
+                           .map(id => allTips.find(tip => tip.id === id));
+            renderTips(allTips);
+            observeTips(); // observe tips for animation
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/&/g, "&amp;")
+                       .replace(/</g, "&lt;")
+                       .replace(/>/g, "&gt;")
+                       .replace(/'/g, "\\'")
+                       .replace(/"/g, "&quot;");
+        }
+
+        function renderTips(tips) {
             let container = document.getElementById('tips-container');
             container.innerHTML = '';
             tips.forEach(t => {
+                const isLiked = likedTips.has(t.id);
                 container.innerHTML += `
-                    <div class="tip-card">
+                    <div class="tip-card" id="tip-${t.id}">
                         ${t.image_url ? `<img src="${t.image_url}" class="tip-image">` : ''}
+                        ${t.video_url ? `<video class="tip-video" controls><source src="${t.video_url}" type="video/mp4"></video>` : ''}
                         <p class="tip-content">${t.content}</p>
                         <div class="tip-actions">
-                            <button class="like-btn" onclick="likeTip(${t.id})">Like (${t.likes})</button>
-                            <button class="comment-btn">Comment</button>
-                            <button class="share-btn" onclick="shareTip('${t.content}')">Share</button>
-                            <button class="download-btn" onclick="downloadTip('${t.content}')">Download</button>
+                            <button onclick="likeTip(${t.id})" ${isLiked ? 'disabled style="opacity: 0.6; cursor: not-allowed;"' : ''}>
+                                <i class="fas fa-thumbs-up"></i> ${t.likes || 0}
+                            </button>
+                            <button onclick="toggleCommentBox(${t.id})"><i class="fas fa-comment"></i> ${t.comment_count || 0}</button>
+                            <button onclick="shareTip('${escapeHtml(t.content)}')"><i class="fas fa-share-alt"></i></button>
+                            <button onclick="downloadTip('${escapeHtml(t.content)}')"><i class="fas fa-download"></i></button>
+                        </div>
+                        <div class="comment-box" id="comment-box-${t.id}" style="display:none; margin-top: 10px;">
+                            <textarea placeholder="Write a comment..." rows="3" style="width: 100%;"></textarea>
+                            <button onclick="submitComment(${t.id})" style="margin-top:5px;">Submit</button>
                         </div>
                     </div>
                 `;
             });
         }
 
-        // Like a tip
         async function likeTip(id) {
-            let res = await fetch('/like/' + id, { method: 'POST' });
-            let data = await res.json();
-            loadTips(); // reload tips to update like count
+            if (likedTips.has(id)) {
+                alert("You already liked this tip.");
+                return;
+            }
+
+            try {
+                let res = await fetch('/like/' + id, { method: 'POST' });
+                if (!res.ok) {
+                    alert('Error liking tip');
+                    return;
+                }
+                likedTips.add(id);
+                loadTips();
+            } catch (e) {
+                alert('Failed to like tip');
+            }
         }
 
-        // Share a tip
+        async function toggleCommentBox(tipId) {
+            const commentBox = document.getElementById(`comment-box-${tipId}`);
+            if (commentBox.style.display === 'block') {
+                commentBox.style.display = 'none';
+                const commentsDiv = document.getElementById(`comments-${tipId}`);
+                if (commentsDiv) commentsDiv.innerHTML = '';
+            } else {
+                commentBox.style.display = 'block';
+                const commentsDivId = `comments-${tipId}`;
+                let commentsDiv = document.getElementById(commentsDivId);
+
+                if (!commentsDiv) {
+                    commentsDiv = document.createElement('div');
+                    commentsDiv.id = commentsDivId;
+                    commentsDiv.style.marginTop = '10px';
+                    commentsDiv.style.maxHeight = '150px';
+                    commentsDiv.style.overflowY = 'auto';
+                    commentsDiv.style.borderTop = '1px solid #ccc';
+                    commentsDiv.style.paddingTop = '5px';
+                    commentBox.appendChild(commentsDiv);
+                }
+
+                commentsDiv.innerHTML = 'Loading comments...';
+
+                try {
+                    const res = await fetch(`/comments/${tipId}`);
+                    if (!res.ok) throw new Error('Failed to load comments');
+
+                    const comments = await res.json();
+
+                    if (comments.length === 0) {
+                        commentsDiv.innerHTML = '<i>No comments yet. Be the first to comment!</i>';
+                        return;
+                    }
+
+                    commentsDiv.innerHTML = '';
+                    comments.forEach(c => {
+                        const cElem = document.createElement('div');
+                        cElem.style.borderBottom = '1px solid #eee';
+                        cElem.style.padding = '5px 0';
+                        cElem.innerHTML = `<strong>${escapeHtml(c.username || 'Anonymous')}</strong>: ${escapeHtml(c.comment)}`;
+                        commentsDiv.appendChild(cElem);
+                    });
+                } catch (error) {
+                    commentsDiv.innerHTML = `<span style="color:red;">${error.message}</span>`;
+                }
+            }
+        }
+
+        async function submitComment(tipId) {
+            const commentBox = document.getElementById(`comment-box-${tipId}`);
+            const textarea = commentBox.querySelector('textarea');
+            const commentText = textarea.value.trim();
+
+            if (!commentText) {
+                alert('Please enter a comment before submitting.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('comment', commentText);
+
+            try {
+                let res = await fetch(`/add_comment/${tipId}`, {
+                    method: 'POST',
+                    body: formData
+                });
+                if (!res.ok) throw new Error('Failed to submit comment');
+
+                alert('Comment added!');
+                textarea.value = '';
+                commentBox.style.display = 'none';
+                loadTips();
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
         function shareTip(content) {
             if (navigator.share) {
-                navigator.share({
-                    title: 'Health Tip',
-                    text: content
-                });
+                navigator.share({ title: 'Health Tip', text: content })
+                    .catch(err => alert('Error sharing: ' + err));
             } else {
                 alert("Sharing not supported on this browser.");
             }
         }
 
-        // Download a tip as a text file
         function downloadTip(content) {
             const blob = new Blob([content], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
             a.download = 'health_tip.txt';
+            document.body.appendChild(a);
             a.click();
+            document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }
 
+        document.getElementById('upload-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            let formData = new FormData(document.getElementById('upload-form'));
+            let res = await fetch('/add_tip', { method: 'POST', body: formData });
+            let data = await res.json();
+            alert(data.message);
+            document.getElementById('upload-form').reset();
+            loadTips();
+        });
+
+        function filterTips() {
+            let query = document.getElementById('search-bar').value.toLowerCase();
+            let filtered = allTips.filter(t => t.content.toLowerCase().includes(query));
+            renderTips(filtered);
+            observeTips(); // re-observe after filtering
+        }
+
+        function toggleFAQ(element) {
+            const answer = element.nextElementSibling;
+            const icon = element.querySelector('i');
+            if (answer.style.display === "block") {
+                answer.style.display = "none";
+                icon.classList.remove("fa-minus");
+                icon.classList.add("fa-plus");
+            } else {
+                answer.style.display = "block";
+                icon.classList.remove("fa-plus");
+                icon.classList.add("fa-minus");
+            }
+        }
+
+        // IntersectionObserver for fade animation on scroll
+        function observeTips() {
+            const tips = document.querySelectorAll('.tip-card');
+            const options = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.1
+            };
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    } else {
+                        entry.target.classList.remove('visible');
+                    }
+                });
+            }, options);
+
+            tips.forEach(tip => {
+                observer.observe(tip);
+            });
+        }
+
+        // Initialize on page load
         loadTips();
     </script>
 </body>
