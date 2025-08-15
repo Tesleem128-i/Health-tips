@@ -8,14 +8,14 @@
     --border-color: #00bfff;
 }
 
-/* Light mode overrides */
+/* Light mode overrides - Blue Theme */
 body.light-mode {
-    --bg-color: #f0f8ff; /* Light blue background */
-    --text-color: #0a0a0a; /* Dark text */
-    --primary-color: #0077b6; /* Darker blue */
+    --bg-color: #0077ff; /* Blue background */
+    --text-color: #ffffff; /* White text for contrast */
+    --primary-color: #0099ff; /* Blue accent */
     --secondary-color: #ff4d4d; /* Diamond Red */
-    --card-bg: #ffffff;
-    --border-color: #0077b6;
+    --card-bg: #3399ff; /* Light blue cards */
+    --border-color: #0099ff; /* Blue borders */
 }
 
 /* General */

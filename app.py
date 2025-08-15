@@ -101,7 +101,7 @@ def index():
     for c in comments_data:
         comments_by_tip.setdefault(c['tip_id'], []).append(c)
 
-    return render_template('index.html', tips=tips, comments_by_tip=comments_by_tip)
+    return render_template('dashboard.html', tips=tips, comments_by_tip=comments_by_tip)
 
 
 @app.route('/tips', methods=['GET'])
@@ -175,7 +175,7 @@ def add_tip():
 def generate_user_id():
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
 
-# Signup route
+
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
@@ -184,23 +184,23 @@ def signup():
         password = request.form['password']
         confirm_password = request.form['confirm_password']
 
-        # Validate passwords
+        
         if password != confirm_password:
             flash("Passwords do not match!", "error")
             return redirect(url_for('signup'))
 
-        # Validate age
+        
         if not age.isdigit() or int(age) < 13:
             flash("You must be at least 13 years old to sign up.", "error")
             return redirect(url_for('signup'))
 
-        # Generate unique user_id
+        
         user_id = generate_user_id()
 
-        # Hash password
+        
         hashed_password = generate_password_hash(password)
 
-        # Save to database
+        
         conn = sqlite3.connect("healthtips.db")
         cur = conn.cursor()
         cur.execute("""
@@ -248,7 +248,7 @@ def login():
                 session['user_id'] = user_id
                 session['username'] = username
                 flash("Login successful!", "success")
-                return redirect(url_for('index'))  # Change 'home' to your homepage route
+                return redirect(url_for('index'))  
             else:
                 flash("Incorrect password!", "error")
         else:

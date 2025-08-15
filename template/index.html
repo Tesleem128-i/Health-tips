@@ -116,6 +116,42 @@
         let allTips = [];
         const likedTips = new Set();
 
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        const body = document.body;
+
+        // Check for saved theme preference
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        if (savedTheme === 'light') {
+            body.classList.add('light-mode');
+            themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+        }
+
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('light-mode');
+            const isLightMode = body.classList.contains('light-mode');
+            localStorage.setItem('theme', isLightMode ? 'light' : 'dark');
+            if (isLightMode) {
+                themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+                // Update colors for light mode
+                document.querySelectorAll('.tip-actions button').forEach(btn => {
+                    btn.style.backgroundColor = '#0066cc'; // shining blue
+                    btn.style.color = 'white';
+                });
+                document.querySelectorAll('.tip-actions button').forEach(btn => {
+                    btn.style.backgroundColor = '#0066cc'; // shining blue
+                    btn.style.color = 'white';
+                });
+            } else {
+                themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+                // Revert colors for dark mode
+                document.querySelectorAll('.tip-actions button').forEach(btn => {
+                    btn.style.backgroundColor = '#00bfff'; // diamond light blue
+                    btn.style.color = 'black';
+                });
+            }
+        });
+
         async function loadTips() {
             let res = await fetch('/tips');
             allTips = await res.json();

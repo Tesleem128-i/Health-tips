@@ -14,33 +14,253 @@
             <h1>ABDULmaliki Health Tips</h1>
         </div>
         <nav class="dashboard-nav">
-            <button class="nav-btn" onclick="showSection('home-section')"><i class="fas fa-home"></i> Home</button>
+            <button class="nav-btn active" onclick="showSection('tips-section')"><i class="fas fa-lightbulb"></i> Tips</button>
             <button class="nav-btn" onclick="showSection('profile-section')"><i class="fas fa-user"></i> Profile</button>
+            <button class="nav-btn" onclick="showSection('settings-section')"><i class="fas fa-cog"></i> Settings</button>
+            <button class="nav-btn" onclick="showSection('about-section')"><i class="fas fa-info-circle"></i> About</button>
             <a href="{{ url_for('logout') }}" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
         </nav>
     </header>
 
     <main>
-        <!-- HOME SECTION -->
-        <section id="home-section" class="dashboard-section">
-            <h2>Welcome, {{ session['username'] }}</h2>
+        <!-- TIPS SECTION (Default) -->
+        <section id="tips-section" class="dashboard-section">
+            <h2>Health Tips</h2>
             <div id="tips-container"></div>
         </section>
 
         <!-- PROFILE SECTION -->
         <section id="profile-section" class="dashboard-section" style="display:none;">
-            <h2>Profile Information</h2>
-            <p><strong>User ID:</strong> {{ session['user_id'] }}</p>
-            <p><strong>Username:</strong> {{ session['username'] }}</p>
-            <p><strong>Member Since:</strong> {{ join_date }}</p> <!-- Pass this from Flask -->
+            <h2>User Profile</h2>
+            <div class="profile-card">
+                <div class="profile-info">
+                    <p><strong>User ID:</strong> {{ session['user_id'] }}</p>
+                    <p><strong>Username:</strong> {{ session['username'] }}</p>
+                    <p><strong>Member Since:</strong> {{ join_date or 'Today' }}</p>
+                </div>
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" id="tips-count">0</span>
+                        <span class="stat-label">Tips Shared</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="likes-count">0</span>
+                        <span class="stat-label">Total Likes</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SETTINGS SECTION -->
+        <section id="settings-section" class="dashboard-section" style="display:none;">
+            <h2>Settings</h2>
+            <div class="settings-card">
+                <h3>Account Settings</h3>
+                <div class="setting-item">
+                    <label>Username:</label>
+                    <input type="text" value="{{ session['username'] }}" readonly>
+                </div>
+                <div class="setting-item">
+                    <label>Notifications:</label>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <h3>Display Settings</h3>
+                <div class="setting-item">
+                    <label>Dark Mode:</label>
+                    <label class="switch">
+                        <input type="checkbox" id="dark-mode-toggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <button class="save-settings-btn">Save Changes</button>
+            </div>
+        </section>
+
+        <!-- ABOUT SECTION -->
+        <section id="about-section" class="dashboard-section" style="display:none;">
+            <h2>About ABDULmaliki Health Tips</h2>
+            <div class="about-card">
+                <h3>Welcome to Our Health Community</h3>
+                <p>
+                    ABDULmaliki Health Tips is a platform dedicated to sharing valuable health information, 
+                    wellness tips, and lifestyle advice to help you live a healthier life.
+                </p>
+                
+                <h4>Features</h4>
+                <ul>
+                    <li>Share and discover health tips</li>
+                    <li>Upload images and videos</li>
+                    <li>Like and interact with content</li>
+                    <li>Comment and discuss tips</li>
+                    <li>Download tips for offline access</li>
+                </ul>
+                
+                <h4>Contact</h4>
+                <p>For questions or support, please reach out through our contact page.</p>
+                
+                <div class="version-info">
+                    <p><strong>Version:</strong> 1.0.0</p>
+                    <p><strong>Last Updated:</strong> December 2024</p>
+                </div>
+            </div>
         </section>
     </main>
 
+    <style>
+        /* Additional CSS for dashboard sections */
+        .dashboard-nav .nav-btn {
+            padding: 10px 20px;
+            margin: 0 5px;
+            border: none;
+            background: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .dashboard-nav .nav-btn:hover {
+            background: #0056b3;
+        }
+        
+        .dashboard-nav .nav-btn.active {
+            background: #28a745;
+        }
+        
+        .profile-card, .settings-card, .about-card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        
+        .profile-stats {
+            display: flex;
+            gap: 30px;
+            margin-top: 20px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            display: block;
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 15px 0;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: #007bff;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        .save-settings-btn {
+            background: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        
+        .about-card ul {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        .about-card li {
+            margin: 5px 0;
+        }
+        
+        .version-info {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+
     <script>
-        // Switch between Home and Profile without leaving dashboard
+        // Switch between sections
         function showSection(sectionId) {
+            // Hide all sections
             document.querySelectorAll('.dashboard-section').forEach(sec => sec.style.display = 'none');
             document.getElementById(sectionId).style.display = 'block';
+            
+            // Update active button
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Load specific data for sections
+            if (sectionId === 'tips-section') {
+                loadTips();
+            } else if (sectionId === 'profile-section') {
+                loadProfileStats();
+            }
         }
 
         // Load health tips
@@ -74,7 +294,16 @@
             loadTips();
         }
 
-        loadTips();
+        async function loadProfileStats() {
+            // This would typically fetch from a user stats endpoint
+            document.getElementById('tips-count').textContent = '5';
+            document.getElementById('likes-count').textContent = '42';
+        }
+
+        // Initialize dashboard with tips as default
+        document.addEventListener('DOMContentLoaded', function() {
+            showSection('tips-section');
+        });
     </script>
 </body>
 </html>
